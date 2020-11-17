@@ -1,0 +1,111 @@
+<?php
+defined('BASEPATH') OR exit('No direct access allowed');
+
+require APPPATH . '/libraries/REST_Controller.php';
+use Restserver\Libraries\REST_Controller;
+
+class Transaksi extends REST_controller{
+	
+	function __construct($config = 'rest'){
+		parent::__construct($config);
+	}
+
+	//Menampilkan data
+	public function index_get(){
+		
+		$id= $this->get('id');
+		$transaksi=[];
+		if($id == ''){
+			$data = $this->db->get('transaksi')->result();
+			foreach($data as $row=>$key):
+				$transaksi[]=["id_transaksi"=>$key->id_transaksi,
+							  "no_nota"=>$key->no_nota,
+							  "jenis"=>$key->jenis,
+							  "nama"=>$key->nama,
+							  "bayar"=>$key->bayar,
+							  "kembali"=>$key->kembali,
+							  "total"=>$key->total,
+							  "tanggal"=>$key->tanggal,
+							  "id_user"=>$key->id_user,
+							  "_links"=>[(object)["href"=>"biaya/{$key->id_biaya}",
+											"rel"=>"biaya",
+											"type"=>"GET"]]
+				];
+			endforeach;
+		}else{
+			$this->db->where('id_transaksi, $id');
+			$data = $this->db->get('transaksi')->result();
+		}
+		$result = ["took"=>$_SERVER["REQUEST_TIME_FLOAT"],
+		"code"=>200,
+		"message"=>"Response successfully",
+		"data"=>$transaksi];
+		$this->response($result,200);
+	
+	}
+	//Menambah Data
+    public function index_post() {
+		$data = array(
+					'id_transaksi'		=>$this->post('id_transaksi'),
+					'no_nota'	   	    =>$this->post('no_nota'),
+					'jenis'	   			=>$this->post('jenis'),
+					'nama'				=>$this->post('nama'),
+					'bayar'				=>$this->post('bayar'),
+					'kembali'			=>$this->post('kembali'),
+					'total'				=>$this->post('total'),
+					'tanggal'			=>$this->post('tanggal'),
+					'id_user'			=>$this->post('id_user'),
+					'id_biaya'			=>$this->post('id_biaya'));
+		$insert = $this->db->insert('transaksi', $data);
+		if ($insert) {
+			//$this->response($data, 200);
+			$result = ["took"=>$_SERVER["REQUEST_TIME_FLOAT"],
+					"code"=>201,
+					"message"=>"Data has successfully added",
+					"data"=>$data];
+			$this->response($result, 201);
+		} else {
+			$result = ["took"=>$_SERVER["REQUEST_TIME_FLOAT"],
+					"code"=>502,
+					"message"=>"Failed adding data",
+					"data"=>null];
+			$this->response($result, 502);
+		}
+    
+    }
+	 //Memperbaharui data yang telah ada
+    public function index_put() {
+		$id = $this->put('id');
+		$data = array(
+                    'id_transaksi'		=>$this->post('id_transaksi'),
+					'no_nota'	   	    =>$this->post('no_nota'),
+					'jenis'	   			=>$this->post('jenis'),
+					'nama'				=>$this->post('nama'),
+					'bayar'				=>$this->post('bayar'),
+					'kembali'			=>$this->post('kembali'),
+					'total'				=>$this->post('total'),
+					'tanggal'			=>$this->post('tanggal'),
+					'id_user'			=>$this->post('id_user'),
+					'id_biaya'			=>$this->post('id_biaya'));
+		$this->db->where('id_transaksi', $id);
+		$update = $this->db->update('transaksi', $data);
+		if ($update) {
+			$this->response($data, 200);
+		} else {
+			$this->response(array('status' => 'fail', 502));
+		}
+    }
+	//Menghapus data
+	public function index_delete() {
+		$id = $this->delete('id');
+		$this->db->where('id_transaksi', $id);
+		$delete = $this->db->delete('transaksi');
+		if ($delete) {
+			$this->response(array('status' => 'success'), 201);
+		} else {
+			$this->response(array('status' => 'fail', 502));
+		}
+	}
+}
+	
+?>
